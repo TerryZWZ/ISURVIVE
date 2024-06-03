@@ -1101,7 +1101,7 @@ class gameScreen extends Phaser.Scene {
 
 /* ---------- Custom Font Function ---------- */
 function loadFont(name, url) {
-	let newFont = new FontFace(name, `url(${url})`); // local variable
+	let newFont = new FontFace(name, `url(${url})`);
 	newFont.load().then(function (loaded) {
 		document.fonts.add(loaded);
 	}).catch(function (error) {

@@ -27,7 +27,8 @@ function loadFont(name, url) {
   .catch(function (error) {
     return error;
   });
-}// end of load custom font function
+}
+// End of load custom font function
 loadFont("retroFont", "assets/retroGaming.ttf");
 
 // This function is responsible for letting the player know if they recieved an award
@@ -104,7 +105,7 @@ function swap(arr, first_Index, second_Index){
 
 // This function is responsible for sorting through the scores given to it
 function bubble_Sort(arr){
-  let len = arr.length,i, j, stop; // local variables
+  let len = arr.length,i, j, stop;
 
   for (i=0; i < len; i++){
     for (j=0, stop=len-i; j < stop; j++){
@@ -243,7 +244,7 @@ class achievementsScreen extends Phaser.Scene{
 
   /* ---------- Constantly Repeating for Achievement Screen ---------- */
   update(){
-    checkMedals(); // updates awards
-    updateScore(); // updates score
+    checkMedals(); // Updates awards
+    updateScore(); // Updates score
   }
 }

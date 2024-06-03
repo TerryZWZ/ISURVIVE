@@ -13,7 +13,7 @@ class endOfGameScreen extends Phaser.Scene{
   /* ---------- Creating Assets for endOfGame Screen ---------- */
   create(){
     // Creates the background image
-    let sceneBackground = this.add.image(0, 0, 'sceneBackground'); // local variable
+    let sceneBackground = this.add.image(0, 0, 'sceneBackground');
     sceneBackground.setOrigin(0,0);
 
     // This function is responsible for loading a custom font
@@ -38,7 +38,7 @@ class endOfGameScreen extends Phaser.Scene{
     });
 
     // CONTINUE button - shopScene
-    let continueBtn = this.add.sprite(486,510, 'continue').setInteractive(); // local variable
+    let continueBtn = this.add.sprite(486,510, 'continue').setInteractive();
     continueBtn.setOrigin(0,0);
     continueBtn.setScale(0.4);
 

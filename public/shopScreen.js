@@ -81,7 +81,7 @@ class shopScreen extends Phaser.Scene{
     }, this);
 
     // SHOP fake button
-    let shop = this.add.sprite(1075,30, 'shop'); // local variable
+    let shop = this.add.sprite(1075,30, 'shop');
     shop.setOrigin(0,0);
     shop.setScale(0.5);
 
