@@ -1,6 +1,15 @@
 /* ---------- Global Variables ---------- */
 let startBackground; 
 
+function loadFont(name, url) {
+	let newFont = new FontFace(name, `url(${url})`);
+	newFont.load().then(function (loaded) {
+		document.fonts.add(loaded);
+	}).catch(function (error) {
+		return error;
+	});
+}
+
 /* -------------------------------------------------- Start Screen -------------------------------------------------- */
 class startScreen extends Phaser.Scene{
   constructor(config){
@@ -9,16 +18,15 @@ class startScreen extends Phaser.Scene{
 
   /* ---------- Preloading Assets for Start Screen ---------- */
   preload(){
-
     this.add.text(1280 / 2 - 45, 720 / 2 - 25, 'Loading Game...');
     this.load.image("title", "assets/startScreen/title.png");
     this.load.image("pressToStart","assets/startScreen/start.png");
     this.load.spritesheet('startBackground', 'assets/startScreen/background.png', { frameWidth: 1200, frameHeight: 720 });
+    loadFont('retroFont', 'assets/retroGaming.ttf');
   }
 
   /* ---------- Creating Assets for Start Screen ---------- */
   create(){
-
     // Setting background to fit with screen
     startBackground = this.add.sprite(this.cameras.main.width / 2, this.cameras.main.height / 2, 'startBackground');
     let scaleX = this.cameras.main.width / startBackground.width;
@@ -44,7 +52,11 @@ class startScreen extends Phaser.Scene{
     pressToStart.setScale(0.5);
     pressToStart.setDepth(1);
 
-    let text = this.add.text(400, 200, 'EARLY ALPHA BUILD', { font: '50px Arial', fill: '#FFFFFF' });
+    let text = this.add.text(350, 200, 'EARLY ALPHA BUILD', { 
+      fontFamily: 'retroFont', 
+      fontSize: '50px', 
+      fill: '#FFFFFF' 
+    });
   }
 
   /* ---------- Constantly Repeating for Start Screen ---------- */

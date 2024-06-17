@@ -5,7 +5,7 @@ let config = {
 	width: 1280,
 	height: 720,
 	scale: {
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        autoCenter: Phaser.Scale.CENTER_HORIZONTALLY
     },
 	physics: {
 		default: 'arcade',
@@ -38,6 +38,7 @@ let bomberMob;
 
 // Environment
 let ground;
+let groundHeights = {};
 
 // Values
 let playerHealth = 10000;
@@ -105,65 +106,69 @@ class gameScreen extends Phaser.Scene {
 
 	/* ---------- Preloading Assets for Gameplay Screen ---------- */
 	preload() {
-
 		this.add.text(1280 / 2 - 45, 720 / 2 - 25, 'Loading Game...');
 
-	 	// Loading environment
-		this.load.image('bg', 'assets/background.png');
-		this.load.image('bg2', 'assets/background2.jpg');
-		this.load.image('bg3', 'assets/background.png');
-		this.load.image('bg4', 'assets/background4.jpg');
+		// Loading environment
+		this.load.image('bg1', 'assets/background1.png');
+		this.load.image('bg2', 'assets/background2.png');
+		this.load.image('bg3', 'assets/background3.png');
+		this.load.image('bg4', 'assets/background4.png');
 		this.load.image('bg5', 'assets/background5.png');
-		this.load.image('bg6', 'assets/background6.jpg');
+		this.load.image('bg6', 'assets/background6.png');
 		this.load.image('bg7', 'assets/background7.png');
 		this.load.image('bg8', 'assets/background8.png');
+		this.load.image('bg9', 'assets/background9.png');
+		this.load.image('bg10', 'assets/background10.png');
+		this.load.image('bg11', 'assets/background11.png');
+		this.load.image('bg12', 'assets/background12.png');
 		this.load.image('ground', 'assets/ground.png');
-		this.load.image('ground2', 'assets/ground2.png');
-		this.load.image('ground4', 'assets/ground4.png');
-		this.load.image('ground5', 'assets/ground5.png');
 		this.load.image('platform', 'assets/platform.png');
 
-	 	// Loading projectiles
+		// Loading projectiles
 		this.load.image('projectile', 'assets/projectile.png');
 		this.load.image('playerProjectile', 'assets/playerProjectile.png');
 		this.load.image('ult', 'assets/ultimate.png');
 		this.load.spritesheet('explosion', 'assets/explosion.png', { frameWidth: 125, frameHeight: 125 });
 
-	 	// Loading charactersa
+		// Loading characters
 		this.load.spritesheet('player', 'assets/player.png', { frameWidth: 50, frameHeight: 37 });
 		this.load.spritesheet('mob', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
 		this.load.spritesheet('skeleton', 'assets/skeleton.png', { frameWidth: 128, frameHeight: 64 });
+		this.load.spritesheet('meleeMobIdle', 'assets/Skeleton/Idle.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('meleeMobRun', 'assets/Skeleton/Run.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('meleeMobAttack', 'assets/Skeleton/Attack_2.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('rangedMobIdle', 'assets/Plent/Idle.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('rangedMobRun', 'assets/Plent/Walk.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('rangedMobAttack', 'assets/Plent/Attack_1.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('bomberMobIdle', 'assets/Fire_Spirit/Idle.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('bomberMobRun', 'assets/Fire_Spirit/Run.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('bomberMobAttack', 'assets/Fire_Spirit/Attack.png', { frameWidth: 128, frameHeight: 128 });
+		this.load.spritesheet('bomberMobExplode', 'assets/Fire_Spirit/Explosion.png', { frameWidth: 128, frameHeight: 128 });
+		
 
-	 	// Music
+		// Music
 		this.load.audio("gameMusic", "assets/backgroundMusic.ogg");
 	}
 
 	/* ---------- Creating Game Elements for Gameplay Screen ---------- */
 	create() {
-
 		this.randomEnvironment(); // Core function is to create background and ground of the world
-
 		this.createPlayer(); // Creates player
-
 		this.createInfo(); // Creates text that delivers game information
 
-		this.meleeMobGenerator(1, 'mob', 3000, 1000, 1000, 50); // Generates melee mobs (how many are spawned at the same time, what is spawned, spawn frequency, base health, base damage)
-
-		this.rangedMobGenerator(1, 'mob', 3000, 750); // Generates ranged mobs (how many are spawned at the same time, what is spawned, spawn frequency, base health)
-
-		this.bomberMobGenerator(1, 'mob', 8000, 150, 350); // Generates bomber mobs (how many are spawned at the same time, what is spawned, spawn frequency, base health)
+		this.meleeMobGenerator(1, 'meleeMobIdle', 3000, 1000, 1000, 50); // Generates melee mobs
+		this.rangedMobGenerator(1, 'rangedMobIdle', 3000, 750); // Generates ranged mobs
+		this.bomberMobGenerator(1, 'bomberMobIdle', 6000, 150, 350); // Generates bomber mobs
 
 		gameMusic = this.sound.add("gameMusic", {
 			volume: 0.2,
 			loop: true
 		});
-
 		gameMusic.play();
 	}
 
 	/* ---------- Constantly Repeating Actions for Gameplay Screen ---------- */
 	update() {
-
 		this.playerControls(); // Player movement controls and other hotkeys
 		this.playerMelee(meleeMobArr); // Player's physical melee attack towards melee mobs
 		this.playerMelee(rangedMobArr); // Player's physical melee attack towards ranged mobs
@@ -171,11 +176,9 @@ class gameScreen extends Phaser.Scene {
 		this.playerDistance(projectileArrR, projectileArrL, meleeMobArr, playerTrackR, playerTrackL, 300, 2, rangedDamage); // Player's ranged attack towards melee mobs
 		this.playerDistance(projectileArrR, projectileArrL, rangedMobArr, playerTrackR, playerTrackL, 300, 2, rangedDamage); // Player's ranged attack towards ranged mobs
 		this.playerDistance(projectileArrR, projectileArrL, bomberMobArr, playerTrackR, playerTrackL, 300, 2, rangedDamage); // Player's ranged attack towards bomber mobs
-
 		this.playerDistance(arrUltR, arrUltL, meleeMobArr, ultTrackR, ultTrackL, 1200, 3, rangedDamage * 10); // Player's ranged attack towards melee mobs
 		this.playerDistance(arrUltR, arrUltL, rangedMobArr, ultTrackR, ultTrackL, 1200, 3, rangedDamage * 10); // Player's ranged attack towards ranged mobs
 		this.playerDistance(arrUltR, arrUltL, bomberMobArr, ultTrackR, ultTrackL, 1200, 3, rangedDamage * 10); // Player's ranged attack towards bomber mobs
-
 		this.playerHealth(); // Progression of player's health if damage is taken
 
 		this.meleeMobBot(); // The "AI" of melee Bots
@@ -190,22 +193,18 @@ class gameScreen extends Phaser.Scene {
 
 	/* ---------- Random Background Function ---------- */
 	randomEnvironment() {
-
-		let bgArray = ['bg', 'bg2', 'bg3', 'bg4', 'bg5', 'bg6', 'bg7', 'bg8']; // Potential backgrounds
+		let bgArray = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5', 'bg6', 'bg7', 'bg8', 'bg9', 'bg10', 'bg11', 'bg12']; // Potential backgrounds
 		let selectedBg = bgArray[Math.floor(Math.random() * bgArray.length)]; // Picking random background
 		let background = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, selectedBg);
 		let scaleX = this.cameras.main.width / background.width; // Fitting background image to fit game canvas
-		let scaleY = this.cameras.main.height / background.height; // Source: https:// phaser.discourse.group/t/how-to-stretch-background-image-on-full-screen/1839
+		let scaleY = this.cameras.main.height / background.height;
 		let scale = Math.max(scaleX, scaleY);
 		background.setScale(scale).setScrollFactor(0);
 
-		let groundArray = ['ground', 'ground2', 'ground4', 'ground5']; // Potential ground textures
-		let groundX = [640, 550, 610, 650]; // Since each ground texture has a different width/height, each ground needs a different x, y coordinate and scale to fit game ground
-		let groundY = [850, 600, 750, 700]; // The value of the index of the array correlate with each other
-		let groundScale = [2.5, 3, 1, 0.4] // For example, groundArray[0] will have the groundX[0] as x coordinate, groundX[0] as y coordinate, groundScale[0] as scale
-		let selectedGround = groundArray[Math.floor(Math.random() * groundArray.length)]; // Picking random ground
+		let groundX = this.cameras.main.width / 2; // Centering the ground
+		let groundY = this.cameras.main.height + 100; // Adjust based on your ground image height
 		ground = this.physics.add.staticGroup(); // Ground is a static body, meaning it won't react to physics
-		ground.create(groundX[groundArray.indexOf(selectedGround)], groundY[groundArray.indexOf(selectedGround)], selectedGround).setScale(groundScale[groundArray.indexOf(selectedGround)]).refreshBody();
+		ground.create(groundX, groundY, 'ground').refreshBody();
 	}
 
 	/* ---------- Creation of Player Function ---------- */
@@ -221,7 +220,7 @@ class gameScreen extends Phaser.Scene {
 		
 
 	 	// Creating player
-		player = this.physics.add.sprite(650, 450, 'skeleton');
+		player = this.physics.add.sprite(100, this.cameras.main.height - 150, 'skeleton');
 	 	//player = this.physics.add.sprite(650, 450, 'player');
 		player.setScale(2);
 		player.setBounce(0.3);
@@ -246,42 +245,8 @@ class gameScreen extends Phaser.Scene {
 		this.anims.create({
 			key: 'explode',
 			frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 15 }),
-			frameRate: 30
+			frameRate: 15,
 		});
-
-	/*
-	 	// Creating player animation to emulate movement
-		this.anims.create({
-			key: 'left',
-			frames: this.anims.generateFrameNumbers('player', { start: 1, end: 6 }),
-			frameRate: 30,
-			repeat: -1
-		});
-
-		this.anims.create({
-			key: 'right',
-			frames: this.anims.generateFrameNumbers('player', { start: 8, end: 13 }),
-			frameRate: 30
-		});
-
-		this.anims.create({
-			key: 'slashR',
-			frames: [{ key: 'player', frame: 14 }],
-			frameRate: 20
-		});
-
-		this.anims.create({
-			key: 'slashL',
-			frames: [{ key: 'player', frame: 15 }],
-			frameRate: 20
-		});
-
-		this.anims.create({
-			key: 'explode',
-			frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 15 }),
-			frameRate: 30,
-		});
-	*/
 	}
 
 	/* ---------- Information Store Function ---------- */
@@ -289,7 +254,7 @@ class gameScreen extends Phaser.Scene {
 		loadFont("retroFont", "assets/retroGaming.ttf");
 
 	 	// Creating healthbar with corresponding text
-		healthText = this.add.text(16, 16, 'Health: 100000', {
+		healthText = this.add.text(10, 10, 'Health: 100000', {
 			fontFamily: "retroFont",
 			fontSize: '32px',
 			fill: 'white',
@@ -301,7 +266,7 @@ class gameScreen extends Phaser.Scene {
 		healthbarScale = healthbar.width;
 
 	 	// Creating indicator for # of melee mobs spawned
-		meleeMobCounter = this.add.text(1020, 16, 'Melee Mobs Spawned: ', {
+		meleeMobCounter = this.add.text(1020, 10, 'Melee Mobs Spawned: ', {
 			fontFamily: 'retroFont',
 			fontSize: '15px',
 			fill: 'white',
@@ -309,7 +274,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for # of ranged mobs spawned
-		rangedMobCounter = this.add.text(1020, 36, 'Eanged Mobs Spawned: ', {
+		rangedMobCounter = this.add.text(1020, 30, 'Eanged Mobs Spawned: ', {
 			fontFamily: 'retroFont',
 			fontSize: '15px',
 			fill: 'white',
@@ -317,7 +282,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for # of bomber mobs spawned
-		bomberMobCounter = this.add.text(1020, 56, 'Bomber Mobs Spawned: ', {
+		bomberMobCounter = this.add.text(1020, 50, 'Bomber Mobs Spawned: ', {
 			fontFamily: 'retroFont',
 			fontSize: '15px',
 			fill: 'white',
@@ -325,7 +290,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for score
-		scoreText = this.add.text(16, 90, 'SCORE: ' + score, {
+		scoreText = this.add.text(10, 680, 'SCORE: ' + score, {
 			fontFamily: "retroFont",
 			fontSize: '32px',
 			fill: 'white',
@@ -333,7 +298,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for killcount
-		countText = this.add.text(this.cameras.main.width / 2, 16, 'Kills: ' + killCount, {
+		countText = this.add.text(560, 10, 'Kills: ' + killCount, {
 			fontFamily: 'retroFont',
 			fontSize: '20px',
 			fill: 'white',
@@ -341,7 +306,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for minutes passed in-game
-		secondsText = this.add.text(16, 130, 'Time Passed: ' + minutes + ':' + seconds, {
+		secondsText = this.add.text(this.cameras.main.width / 2, 680, 'TIME: ' + minutes + ':' + seconds, {
 			fontFamily: "retroFont",
 			fontSize: '32px',
 			fill: 'white',
@@ -356,7 +321,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for total damage delt to mobs
-		totalDmgText = this.add.text(this.cameras.main.width / 2, 36, 'Total Damage: ' + totalDmg, {
+		totalDmgText = this.add.text(680, 10, 'Total Damage: ' + totalDmg, {
 			fontFamily: 'retroFont',
 			fontSize: '20px',
 			fill: 'white',
@@ -364,7 +329,7 @@ class gameScreen extends Phaser.Scene {
 		});
 
 	 	// Creating indicator for total damage delt to mobs
-		ultText = this.add.text(16, 170, 'Ultimate Charge: ' + ultCooldown, {
+		ultText = this.add.text(1000, 680, 'ULT: ' + ultCooldown, {
 			fontFamily: 'retroFont',
 			fontSize: '32px',
 			fill: 'white',
@@ -376,11 +341,11 @@ class gameScreen extends Phaser.Scene {
 	gameTime() {
 
 		seconds++; // Since this is the callback to mainTimer, every 1 seconds, 1 is added to seconds
-		secondsText.setText('Time Passed: ' + minutes + ':' + seconds); // Updating seconds indicator
+		secondsText.setText('TIME: ' + minutes + ':' + seconds); // Updating seconds indicator
 		if (seconds == 60) { // Once 60 seconds pass, a minute is gained
 			minutes++;
 			seconds = 0; // Updating seconds to 0 since a minute has passed
-			secondsText.setText('Time Passed: ' + minutes + ':' + seconds); // Updating seconds indicator
+			secondsText.setText('TIME: ' + minutes + ':' + seconds); // Updating seconds indicator
 		}
 
 		if (seconds == 30) { // Every 30 seconds, difficulty multiplier will increase, which will later increase mob damage ouput
@@ -527,7 +492,7 @@ class gameScreen extends Phaser.Scene {
 
 		if (ultCooldown < charge) {
 			ultCooldown++;
-			ultText.setText('Ultimate Charge: ' + Math.round(ultCooldown / 100) + '%');
+			ultText.setText('ULT: ' + Math.round(ultCooldown / 100) + '%');
 		}
 
 		if (playerDirection == 'RIGHT') { // If player is facing right side
@@ -541,7 +506,7 @@ class gameScreen extends Phaser.Scene {
 
 			if (ultCooldown == charge) {
 
-				ultText.setText('Ultimate Charge: READY');
+				ultText.setText('ULT: READY');
 
 				if (Phaser.Input.Keyboard.JustDown(Q)) {
 					let projectile = this.physics.add.image(char.x, char.y, 'ult').setScale(1).setSize(350, 200, true);
@@ -566,7 +531,7 @@ class gameScreen extends Phaser.Scene {
 
 			if (ultCooldown == charge) {
 
-				ultText.setText('Ultimate Charge: READY');
+				ultText.setText('ULT: READY');
 
 				if (Phaser.Input.Keyboard.JustDown(Q)) {
 					let projectile = this.physics.add.image(char.x, char.y, 'ult').setScale(1).setSize(350, 200, true);
@@ -599,9 +564,9 @@ class gameScreen extends Phaser.Scene {
 
 
 				if (char[x].health <= 0) { // If mob health reaches 0, it disapears
-					let explosion = this.add.sprite(char[x].id.x, char[x].id.y, 'explosion').setScale(1); // explosion is created
-					explosion.anims.play('explode', true);
-					let timer = this.time.delayedCall(1, function () { explosion.destroy(); }); // explosion fades away
+					//let explosion = this.add.sprite(char[x].id.x, char[x].id.y, 'explosion').setScale(1); // explosion is created
+					//explosion.anims.play('explode', true);
+					//let timer = this.time.delayedCall(1, function () { explosion.destroy(); }); // explosion fades away
 					char[x].id.disableBody(true, true);
 					Phaser.Utils.Array.RemoveAt(char, x);
 
@@ -704,92 +669,82 @@ class gameScreen extends Phaser.Scene {
 	/* ---------- meleeMob Respawn Function ---------- */
 	meleeMobGenerator(population, char, spawnSpeed, health, attackSpeed, dmg) {
 
-	 	// Creating meleeMob animation to emulate movement
+		// Creating meleeMob animation to emulate movement
 		this.anims.create({
-			key: 'meleeMobR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
+			key: 'meleeMobRun',
+			frames: this.anims.generateFrameNumbers('meleeMobRun', { start: 0, end: 6 }),
+			frameRate: 20,
+		});
+	
+		this.anims.create({
+			key: 'meleeMobAttack',
+			frames: this.anims.generateFrameNumbers('meleeMobAttack', { start: 0, end: 3 }),
 			frameRate: 20,
 		});
 
-		this.anims.create({
-			key: 'meleeMobL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
-			frameRate: 20,
-		});
-
-		this.anims.create({
-			key: 'meleeMobHitR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
-			frameRate: 20,
-		});
-
-		this.anims.create({
-			key: 'meleeMobHitL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
-			frameRate: 20,
-		});
-
+		let spawnTimer;
+		let attackTimer;
+	
+		// Define the spawn function
+		const spawn = () => {
+			let location = [0, 1280]; // Right side, or left side of world
+			let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
+			let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
+			mobSpawn.setBounce(0.3);
+			mobSpawn.setCollideWorldBounds(true);
+			this.physics.add.collider(mobSpawn, ground);
+			let meleeMob = { id: mobSpawn, health: health * difficultyMultiplier }; // Melee mob is created
+			meleeMobArr.push(meleeMob);
+	
+			for (let p = 0; p < meleeMobArr.length; p++) {
+				this.physics.add.overlap(player, meleeMobArr[p].id, () => { attackTimer.paused = false; }); // If mob comes in contact with player, attackTimer may start
+			}
+		};
+	
+		// Define the damage function
+		const damage = (dmg) => {
+			for (let p = 0; p < meleeMobArr.length; p++) {
+				playerHealth -= (dmg / defense) * difficultyMultiplier; // Damage dealt to player, as time passes, it gets stronger through difficulty multiplier
+				healthbar.width -= (healthbarScale / totalHealth) * ((dmg / defense) * difficultyMultiplier); // As player health decreases, the healthbar decreases as well
+				this.playerHealth(); // Function to update healthbar color and health indicator
+	
+				if (player.x - meleeMobArr[p].id.x < 20 && player.x - meleeMobArr[p].id.x > 0) { // If player is right of where mob is attacking, right attack animation
+					meleeMobArr[p].id.play('meleeMobAttack', true);
+					meleeMobArr[p].id.flipX = false;
+				}
+	
+				if (meleeMobArr[p].id.x - player.x > 0) { // If player is left of where mob is attacking, left attack animation
+					meleeMobArr[p].id.play('meleeMobAttack', true);
+					meleeMobArr[p].id.flipX = true;
+				}
+	
+				if (meleeMobArr[p].id.x < player.x - 20) { // If player walks away from right side, attackTimer is paused since mob is no longer in contact
+					attackTimer.paused = true;
+				}
+	
+				if (meleeMobArr[p].id.x > player.x + 20) { // If player walks away from left side, attackTimer is paused since mob is no longer in contact
+					attackTimer.paused = true;
+				}
+			}
+		};
+	
 		for (let i = 0; i < population; i++) {
-
-			let spawnTimer = this.time.addEvent({ // Every parameter specified seconds, mob spawn occurs
+			spawnTimer = this.time.addEvent({ // Every parameter specified seconds, mob spawn occurs
 				delay: spawnSpeed * spawnMultiplier,
 				callback: spawn,
 				callbackScope: this,
 				loop: true
 			});
-
-			let attackTimer = this.time.addEvent({ // Every parameter specified seconds, an attack occurs
+	
+			attackTimer = this.time.addEvent({ // Every parameter specified seconds, an attack occurs
 				delay: attackSpeed,
 				callback: damage,
 				args: [dmg],
 				callbackScope: this,
 				loop: true
 			});
-
-		
-
+	
 			attackTimer.paused = true; // Pause attack timer until mob comes into contact with player
-
-			function spawn() {
-
-				let location = [0, 1280]; // Right side, or left side of world
-				let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
-				let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
-				mobSpawn.setBounce(0.3);
-				mobSpawn.setCollideWorldBounds(true);
-				this.physics.add.collider(mobSpawn, ground);
-				let meleeMob = { id: mobSpawn, health: health * difficultyMultiplier, }// Melee mob is created
-				meleeMobArr.push(meleeMob);
-
-				for (let p = 0; p < meleeMobArr.length; p++) {
-					this.physics.add.overlap(player, meleeMobArr[p].id, function () { attackTimer.paused = false; }); // If mob comes in contact with player, attackTimer may start
-				}
-			}
-
-			function damage(dmg) {
-
-				for (let p = 0; p < meleeMobArr.length; p++) {
-					playerHealth -= (dmg / defense) * difficultyMultiplier; // Damage delt to player, as time passes, it gets stronger through difficulty multiplier
-					healthbar.width -= (healthbarScale / totalHealth) * ((dmg / defense) * difficultyMultiplier); // As player health decreases, the healthbar decreases as well
-					this.playerHealth(); // Function to update healthbar color and health indicator
-
-					if (player.x - meleeMobArr[p].id.x < 20 && player.x - meleeMobArr[p].id.x > 0) { // If player is right of where mob is attacking, right attack animation
-						meleeMobArr[p].id.anims.play('meleeMobHitR', true);
-					}
-
-					if (meleeMobArr[p].id.x - player.x > 0) { // If player is right of where mob is attacking, left attack animation
-						meleeMobArr[p].id.anims.play('meleeMobHitL', true);
-					}
-
-					if (meleeMobArr[p].id.x < player.x - 20) { // If player walks away from right side, attackTimer is paused since mob is no longer in contact
-						attackTimer.paused = true;
-					}
-
-					if (meleeMobArr[p].id.x > player.x + 20) { // If player walks away from left side, attackTimer is paused since mob is no longer in contact
-						attackTimer.paused = true;
-					}
-				}
-			}
 		}
 	}
 
@@ -799,7 +754,8 @@ class gameScreen extends Phaser.Scene {
 		for (let i = 0; i < meleeMobArr.length; i++) {
 
 			if (meleeMobArr[i].id.x < player.x - 20) { // If player is right of mob, mob moves to player until 20px away
-				meleeMobArr[i].id.anims.play('meleeMobR', true);
+				meleeMobArr[i].id.play('meleeMobRun', true);
+            	meleeMobArr[i].id.flipX = false;
 				meleeMobArr[i].id.setVelocityX((Math.random() * (150 - 50) + 50));
 			}
 
@@ -808,7 +764,8 @@ class gameScreen extends Phaser.Scene {
 			}
 
 			if (meleeMobArr[i].id.x > player.x + 20) { // If player is left of mob, mob moves to player until 20px away
-				meleeMobArr[i].id.anims.play('meleeMobL', true);
+				meleeMobArr[i].id.play('meleeMobRun', true);
+            	meleeMobArr[i].id.flipX = true;
 				meleeMobArr[i].id.setVelocityX(-(Math.random() * (150 - 50) + 50));
 			}
 		}
@@ -819,52 +776,42 @@ class gameScreen extends Phaser.Scene {
 	/* ---------- rangedMob Respawn Function ---------- */
 	rangedMobGenerator(population, char, spawnSpeed, health) {
 
-	 // Creating rangedMob animation to emulate movement
+	 	// Creating rangedMob animation to emulate movement
 		this.anims.create({
-			key: 'rangedMobR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
+			key: 'rangedMobRun',
+			frames: this.anims.generateFrameNumbers('rangedMobRun', { start: 0, end: 8 }),
 			frameRate: 20,
 		});
 
 		this.anims.create({
-			key: 'rangedMobL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
+			key: 'rangedMobAttack',
+			frames: this.anims.generateFrameNumbers('rangedMobAttack', { start: 0, end: 5 }),
 			frameRate: 20,
 		});
 
-		this.anims.create({
-			key: 'rangedMobShootR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
-			frameRate: 20,
-		});
+		let spawnTimer;
+		let attackTimer;
 
-		this.anims.create({
-			key: 'rangedMobShootL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
-			frameRate: 20,
-		});
+		function spawn() {
 
+			let location = [0, 1280]; // Right side, or left side of world
+			let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
+			let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
+			mobSpawn.setBounce(0.3);
+			mobSpawn.setCollideWorldBounds(true);
+			this.physics.add.collider(mobSpawn, ground);
+			let rangedMob = { id: mobSpawn, health: health * difficultyMultiplier, cooldown: 0, position: 'N/A' } // Ranged mob is created
+			rangedMobArr.push(rangedMob);
+		}
 
 		for (let i = 0; i < population; i++) { // Every parameter specified seconds, mob spawn occurs
 
-			let spawnTimer = this.time.addEvent({
+			spawnTimer = this.time.addEvent({
 				delay: spawnSpeed * spawnMultiplier,
 				callback: spawn,
 				callbackScope: this,
 				loop: true
 			});
-
-			function spawn() {
-
-				let location = [0, 1280]; // Right side, or left side of world
-				let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
-				let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
-				mobSpawn.setBounce(0.3);
-				mobSpawn.setCollideWorldBounds(true);
-				this.physics.add.collider(mobSpawn, ground);
-				let rangedMob = { id: mobSpawn, health: health * difficultyMultiplier, cooldown: 0, position: 'N/A' } // Ranged mob is created
-				rangedMobArr.push(rangedMob);
-			}
 		}
 	}
 
@@ -877,7 +824,8 @@ class gameScreen extends Phaser.Scene {
 			if (rangedMobArr[i].cooldown == 250) { // When timer teaches 250, mob will shoot projectile
 
 				if (rangedMobArr[i].position == 'RIGHT') { // If mob is facing right, it will shoot right side projectile
-					rangedMobArr[i].id.anims.play('rangedMobShootR', true);
+					rangedMobArr[i].id.play('rangedMobAttack', true);
+					rangedMobArr[i].id.flipX = false;
 					let projectile = this.physics.add.image(rangedMobArr[i].id.x, rangedMobArr[i].id.y, blast).setScale(0.75).setSize(60, 60, true);
 					projectile.body.setAllowGravity(false);
 					mobProjectileR.push(projectile);
@@ -885,7 +833,8 @@ class gameScreen extends Phaser.Scene {
 				}
 
 				if (rangedMobArr[i].position == 'LEFT') { // if mob is facing right, it will shoot left side projectile
-					rangedMobArr[i].id.anims.play('rangedMobShootL', true);
+					rangedMobArr[i].id.play('rangedMobAttack', true);
+					rangedMobArr[i].id.flipX = true;
 					let projectile = this.physics.add.image(rangedMobArr[i].id.x, rangedMobArr[i].id.y, blast).setScale(0.75).setSize(60, 60, true);
 					projectile.body.setAllowGravity(false);
 					mobProjectileL.push(projectile);
@@ -933,28 +882,16 @@ class gameScreen extends Phaser.Scene {
 	/* ---------- rangedMob Tendencies Function ---------- */
 	rangedMobBot() {
 
-	 	// Creating rangedMob animation to emulate movement
+		// Creating rangedMob animation to emulate movement
 		this.anims.create({
-			key: 'rangedMobR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
+			key: 'rangedMobRun',
+			frames: this.anims.generateFrameNumbers('rangedMobRun', { start: 0, end: 8 }),
 			frameRate: 20,
 		});
 
 		this.anims.create({
-			key: 'rangedMobL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
-			frameRate: 20,
-		});
-
-		this.anims.create({
-			key: 'rangedMobShootR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
-			frameRate: 20,
-		});
-
-		this.anims.create({
-			key: 'rangedMobShootL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
+			key: 'rangedMobAttack',
+			frames: this.anims.generateFrameNumbers('rangedMobAttack', { start: 0, end: 5 }),
 			frameRate: 20,
 		});
 
@@ -962,7 +899,8 @@ class gameScreen extends Phaser.Scene {
 		for (let i = 0; i < rangedMobArr.length; i++) {
 
 			if (rangedMobArr[i].id.x < player.x - 150) { // If player is right of mob, mob moves to player until 150px away
-				rangedMobArr[i].id.anims.play('rangedMobR', true);
+				rangedMobArr[i].id.play('rangedMobAttack', true);
+				rangedMobArr[i].id.flipX = false;
 				rangedMobArr[i].id.setVelocityX((Math.random() * (150 - 50) + 50));
 				rangedMobArr[i].position = 'RIGHT';
 			}
@@ -972,7 +910,8 @@ class gameScreen extends Phaser.Scene {
 			}
 
 			if (rangedMobArr[i].id.x > player.x + 150) { // If player is right of mob, mob moves to player until 150px away
-				rangedMobArr[i].id.anims.play('rangedMobL', true);
+				rangedMobArr[i].id.play('rangedMobAttack', true);
+				rangedMobArr[i].id.flipX = true;
 				rangedMobArr[i].id.setVelocityX(-(Math.random() * (150 - 50) + 50));
 				rangedMobArr[i].position = 'LEFT';
 			}
@@ -985,47 +924,74 @@ class gameScreen extends Phaser.Scene {
 	/* ---------- bomberMob Respawn Function ---------- */
 	bomberMobGenerator(population, char, spawnSpeed, health, dmg) {
 
-	 	// Creating bomberMob animation to emulate movement
+		// Creating bomberMob animation to emulate movement
 		this.anims.create({
-			key: 'bomberMobR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
+			key: 'bomberMobRun',
+			frames: this.anims.generateFrameNumbers('bomberMobRun', { start: 0, end: 6 }),
 			frameRate: 20,
 		});
 
 		this.anims.create({
-			key: 'bomberMobL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
+			key: 'bomberMobAttack',
+			frames: this.anims.generateFrameNumbers('bomberMobAttack', { start: 0, end: 13 }),
 			frameRate: 20,
 		});
 
 		this.anims.create({
-			key: 'bomberMobHitR',
-			frames: this.anims.generateFrameNumbers('mob', { start: 5, end: 7 }),
-			frameRate: 20,
+			key: 'bomberMobExplode',
+			frames: this.anims.generateFrameNumbers('bomberMobExplode', { start: 0, end: 10 }),
+			frameRate: 30,
 		});
 
-		this.anims.create({
-			key: 'bomberMobHitL',
-			frames: this.anims.generateFrameNumbers('mob', { start: 0, end: 2 }),
-			frameRate: 20,
-		});
+		let spawnTimer;
+		let explodeTimer;
 
-		this.anims.create({
-			key: 'explode',
-			frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 15 }),
-			frameRate: 24,
-		});
+		const spawn = () => {
+			let location = [0, 1280]; // Right side, or left side of world
+			let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
+			let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
+			mobSpawn.setBounce(0.3);
+			mobSpawn.setCollideWorldBounds(true);
+			this.physics.add.collider(mobSpawn, ground);
+			let bomberMob = { id: mobSpawn, health: health * difficultyMultiplier }; // Bomber mob is created
+			bomberMobArr.push(bomberMob);
+
+			for (let p = 0; p < bomberMobArr.length; p++) {
+				this.physics.add.collider(player, bomberMobArr[p].id, () => { // If mob comes in contact with player
+					playerHealth -= (dmg / defense) * difficultyMultiplier; // Damage dealt to player, as time passes, it gets stronger through difficulty multiplier
+					healthbar.width -= (healthbarScale / totalHealth) * ((dmg / defense) * difficultyMultiplier); // As player health decreases, the healthbar decreases as well
+					healthText.setText('Health: ' + Math.round(playerHealth)); // Update to health indicator
+					explodeTimer.paused = false; // Explosion starts
+					for (let o = 0; o < bomberMobArr.length; o++) {
+						bomberMobArr[o].id.disableBody(true, true);
+						Phaser.Utils.Array.RemoveAt(bomberMobArr, o);
+					}
+				});
+				this.playerHealth(); // Function to update healthbar color
+			}
+		};
+
+		const explode = () => {
+			let explosion = this.add.sprite(player.x, player.y, 'bomberMobIdle').setScale(1); // explosion is created
+			explosion.play('bomberMobExplode', true);
+			this.time.delayedCall(500, () => { explosion.destroy(); }); // explosion fades away
+
+			score += 25; // Even though player did not kill mob on time before explosion, player still gains 25 points
+			scoreText.setText('Score: ' + score); // Update to score indicator
+
+			explodeTimer.paused = true; // Explosion is stopped since it 'faded away'
+		};
 
 		for (let i = 0; i < population; i++) {
 
-			let spawnTimer = this.time.addEvent({ // Every parameter specified seconds, mob spawn occurs
+			spawnTimer = this.time.addEvent({ // Every parameter specified seconds, mob spawn occurs
 				delay: spawnSpeed * spawnMultiplier,
 				callback: spawn,
 				callbackScope: this,
 				loop: true
 			});
 
-			let explodeTimer = this.time.addEvent({ // When this timer is true, explode function occurs
+			explodeTimer = this.time.addEvent({ // When this timer is true, explode function occurs
 				delay: 1,
 				callback: explode,
 				callbackScope: this,
@@ -1033,48 +999,6 @@ class gameScreen extends Phaser.Scene {
 			});
 
 			explodeTimer.paused = true; // Pause explosion until mob comes into contact with player
-
-			function spawn() {
-
-				let location = [0, 1280];	 // Right side, or left side of world
-				let spawnLocation = location[Math.floor(Math.random() * location.length)]; // Randomly picking left or right side spawn location
-				let mobSpawn = this.physics.add.sprite(spawnLocation, 500, char);
-				mobSpawn.setBounce(0.3);
-				mobSpawn.setCollideWorldBounds(true);
-				this.physics.add.collider(mobSpawn, ground);
-				let bomberMob = { id: mobSpawn, health: health * difficultyMultiplier } // Bomber mob is created
-				bomberMobArr.push(bomberMob);
-
-				for (let p = 0; p < bomberMobArr.length; p++) {
-
-					this.physics.add.collider(player, bomberMobArr[p].id, function () { // If mob comes in contact with player
-						playerHealth -= (dmg / defense) * difficultyMultiplier; // Damage delt to player, as time passes, it gets stronger through difficulty multiplier
-						healthbar.width -= (healthbarScale / totalHealth) * ((dmg / defense) * difficultyMultiplier); // As player health decreases, the healthbar decreases as well
-						healthText.setText('Health: ' + Math.round(playerHealth)); // Update to health indicator
-						explodeTimer.paused = false; // Explosion starts
-						for (let o = 0; o < bomberMobArr.length; o++) {
-							bomberMobArr[o].id.disableBody(true, true);
-							Phaser.Utils.Array.RemoveAt(bomberMobArr, o);
-						}
-					});
-
-					this.playerHealth(); // Function to update healthbar color
-
-				}
-			}
-
-			function explode() {
-
-				let explosion = this.add.sprite(player.x, player.y, 'explosion').setScale(1); // explosion is created
-				explosion.anims.play('explode', true);
-				let timer = this.time.delayedCall(500, function () { explosion.destroy(); }); // explosion fades away
-
-
-				score += 25; // Even though player did not kill mob on time before explosion, player still gains 25 points
-				scoreText.setText('Score: ' + score); // Update to score indicator
-
-				explodeTimer.paused = true; // Explosion is stopped since it 'faded away'
-			}
 		}
 	}
 
@@ -1084,7 +1008,8 @@ class gameScreen extends Phaser.Scene {
 		for (let i = 0; i < bomberMobArr.length; i++) {
 
 			if (bomberMobArr[i].id.x < player.x - 5) { // If player is right of mob, mob moves to player until 5px away
-				bomberMobArr[i].id.anims.play('bomberMobR', true);
+				bomberMobArr[i].id.play('bomberMobRun', true);
+				bomberMobArr[i].id.flipX = false;
 				bomberMobArr[i].id.setVelocityX((Math.random() * (350 - 270) + 270));
 			}
 
@@ -1093,13 +1018,15 @@ class gameScreen extends Phaser.Scene {
 			}
 
 			if (bomberMobArr[i].id.x > player.x + 5) { // If player is right of mob, mob moves to player until 5px away
-				bomberMobArr[i].id.anims.play('bomberMobL', true);
+				bomberMobArr[i].id.play('bomberMobRun', true);
+				bomberMobArr[i].id.flipX = true;
 				bomberMobArr[i].id.setVelocityX(-(Math.random() * (350 - 270) + 270));
 			}
 		}
 
 		return bomberMobArr.length; // Return amount of bomber mobs spawned
 	}
+
 }
 
 /* ---------- Custom Font Function ---------- */
@@ -1111,4 +1038,3 @@ function loadFont(name, url) {
 		return error;
 	});
 }
-
